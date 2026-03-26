@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+  :root {
+    --bg:#0a0a0f;--surface:#111118;--card:#16161f;--border:#2a2a3a;
+    --accent:#c8ff57;--accent2:#57c8ff;--accent3:#ff6b8a;--accent4:#c857ff;--accent5:#ffb347;--accent6:#57ffb3;
+    --text:#eeeef5;--muted:#6b6b88;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 16px 60px;overflow-x:hidden;}
+  body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(200,255,87,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+  body::after{content:'';position:fixed;bottom:-100px;right:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(87,200,255,.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+  .wrapper{position:relative;z-index:1;width:100%;max-width:740px;}
+  header{text-align:center;margin-bottom:40px;}
+  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.8rem,5vw,3rem);letter-spacing:-1px;display:inline-flex;align-items:center;gap:12px;}
+  .logo span{color:var(--accent);}
+  .logo-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.6);opacity:.5;}}
+  .tagline{margin-top:8px;color:var(--muted);font-size:.75rem;letter-spacing:2px;text-transform:uppercase;}
+  .steps{display:flex;justify-content:center;gap:0;margin-bottom:36px;position:relative;}
+  .steps::before{content:'';position:absolute;top:18px;left:10%;right:10%;height:1px;background:var(--border);z-index:0;}
+  .step{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative;z-index:1;}
+  .step-num{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:500;color:var(--muted);transition:all .3s;}
+  .step.active .step-num{border-color:var(--accent);background:var(--accent);color:#000;font-weight:700;}
+  .step.done .step-num{border-color:var(--accent);color:var(--accent);}
+  .step-label{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:center;}
+  .step.active .step-label{color:var(--accent);}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;}
+  .card-title{font-family:'Syne',sans-serif;font-size:.68rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+  .card-title::before{content:'';display:block;width:18px;height:1px;background:var(--accent);}
+  /* Upload */
+  .upload-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:32px 16px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+  .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(200,255,87,.04);}
+  .upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .upload-icon{font-size:2rem;margin-bottom:10px;display:block;}
+  .upload-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:4px;}
+  .upload-sub{font-size:.7rem;color:var(--muted);}
+  .upload-file-info{margin-top:14px;padding:10px 14px;background:rgba(200,255,87,.08);border:1px solid rgba(200,255,87,.2);border-radius:8px;font-size:.72rem;color:var(--accent);display:none;align-items:center;gap:8px;}
+  .upload-file-info.show{display:flex;}
+  .waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:28px;margin-top:14px;}
+  .wave-bar{width:3px;border-radius:2px;background:var(--accent);opacity:.5;animation:wave 1.2s ease-in-out infinite;}
+  @keyframes wave{0%,100%{transform:scaleY(.3);}50%{transform:scaleY(1);}}
+  /* Options — 3 col grid */
+  .options-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:560px){.options-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:360px){.options-grid{grid-template-columns:1fr;}}
+  .option-card{border:1.5px solid var(--border);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+  .option-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .opt-a::before{background:linear-gradient(135deg,rgba(200,255,87,.09),transparent);}
+  .opt-b::before{background:linear-gradient(135deg,rgba(87,200,255,.09),transparent);}
+  .opt-c::before{background:linear-gradient(135deg,rgba(255,107,138,.09),transparent);}
+  .opt-d::before{background:linear-gradient(135deg,rgba(200,87,255,.09),transparent);}
+  .opt-e::before{background:linear-gradient(135deg,rgba(255,179,71,.09),transparent);}
+  .opt-f::before{background:linear-gradient(135deg,rgba(87,255,179,.09),transparent);}
+  .option-card:hover::before,.option-card.selected::before{opacity:1;}
+  .option-card:hover{border-color:#444;transform:translateY(-1px);}
+  .opt-a.selected{border-color:var(--accent);}
+  .opt-b.selected{border-color:var(--accent2);}
+  .opt-c.selected{border-color:var(--accent3);}
+  .opt-d.selected{border-color:var(--accent4);}
+  .opt-e.selected{border-color:var(--accent5);}
+  .opt-f.selected{border-color:var(--accent6);}
+  .option-icon{font-size:1.3rem;margin-bottom:8px;display:block;}
+  .option-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;margin-bottom:3px;}
+  .option-desc{font-size:.62rem;color:var(--muted);line-height:1.5;}
+  .option-tag{position:absolute;top:8px;right:8px;font-size:.5rem;padding:2px 6px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;font-weight:500;}
+  .opt-a .option-tag{background:rgba(200,255,87,.15);color:var(--accent);}
+  .opt-b .option-tag{background:rgba(87,200,255,.15);color:var(--accent2);}
+  .opt-c .option-tag{background:rgba(255,107,138,.15);color:var(--accent3);}
+  .opt-d .option-tag{background:rgba(200,87,255,.15);color:var(--accent4);}
+  .opt-e .option-tag{background:rgba(255,179,71,.15);color:var(--accent5);}
+  .opt-f .option-tag{background:rgba(87,255,179,.15);color:var(--accent6);}
+  .combo-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.5rem;font-weight:700;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase;}
+  .opt-e .combo-badge{background:rgba(255,179,71,.2);color:var(--accent5);}
+  .opt-f .combo-badge{background:rgba(87,255,179,.2);color:var(--accent6);}
+  .option-check{position:absolute;top:8px;left:8px;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.5rem;transition:all .2s;}
+  .opt-a.selected .option-check{border-color:var(--accent);background:var(--accent);color:#000;}
+  .opt-b.selected .option-check{border-color:var(--accent2);background:var(--accent2);color:#000;}
+  .opt-c.selected .option-check{border-color:var(--accent3);background:var(--accent3);color:#000;}
+  .opt-d.selected .option-check{border-color:var(--accent4);background:var(--accent4);color:#000;}
+  .opt-e.selected .option-check{border-color:var(--accent5);background:var(--accent5);color:#000;}
+  .opt-f.selected .option-check{border-color:var(--accent6);background:var(--accent6);color:#000;}
+  /* Image */
+  .img-upload{display:flex;gap:14px;align-items:center;}
+  .img-drop{flex:1;border:1.5px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .3s;position:relative;font-size:.7rem;color:var(--muted);}
+  .img-drop:hover{border-color:var(--accent2);color:var(--accent2);}
+  .img-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .img-preview{width:72px;height:72px;border-radius:8px;border:1px solid var(--border);object-fit:cover;display:none;background:var(--surface);flex-shrink:0;}
+  .img-preview.show{display:block;}
+  .optional-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.58rem;background:rgba(255,255,255,.05);color:var(--muted);letter-spacing:1px;margin-left:8px;text-transform:uppercase;}
+  /* Btn */
+  .process-btn{width:100%;padding:16px;border-radius:var(--radius);border:none;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;letter-spacing:1px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;}
+  .process-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(200,255,87,.25);}
+  .process-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
+  /* Progress */
+  .progress-area{display:none;margin-bottom:16px;}
+  .progress-area.show{display:block;}
+  .progress-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;width:0%;transition:width .4s ease;}
+  .progress-label{font-size:.7rem;color:var(--muted);display:flex;justify-content:space-between;}
+  .progress-stage{color:var(--accent);}
+  /* Output */
+  .output-card{display:none;}
+  .output-card.show{display:block;}
+  .output-list{display:flex;flex-direction:column;gap:10px;}
+  .output-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .2s;}
+  .output-item:hover{border-color:var(--accent);}
+  .output-item-icon{font-size:1.3rem;width:38px;height:38px;background:rgba(200,255,87,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .output-item-info{flex:1;min-width:0;}
+  .output-item-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .output-item-meta{font-size:.65rem;color:var(--muted);}
+  .dl-btn{padding:7px 14px;border-radius:8px;background:var(--accent);color:#000;font-family:'DM Mono',monospace;font-size:.68rem;font-weight:500;border:none;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;text-decoration:none;flex-shrink:0;}
+  .dl-btn:hover{box-shadow:0 4px 16px rgba(200,255,87,.3);transform:translateY(-1px);}
+  .reset-btn{display:block;margin:16px auto 0;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:.7rem;padding:8px 20px;border-radius:8px;cursor:pointer;transition:all .2s;}
+  .reset-btn:hover{border-color:var(--accent3);color:var(--accent3);}
+  .lyrics-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:.72rem;line-height:1.9;color:var(--text);max-height:160px;overflow-y:auto;margin-top:12px;display:none;}
+  .lyrics-box.show{display:block;}
+  .lyrics-box::-webkit-scrollbar{width:4px;}
+  .lyrics-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .lyrics-line{opacity:0;animation:fadeIn .5s ease forwards;}
+  @keyframes fadeIn{to{opacity:1;}}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--accent);color:var(--accent);padding:9px 22px;border-radius:30px;font-size:.72rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999;white-space:nowrap;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="logo"><div class="logo-dot"></div>AUDIO<span>FORGE</span></div>
+    <p class="tagline">AI-powered music conversion studio</p>
+  </header>
+
+  <div class="steps">
+    <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Upload</div></div>
+    <div class="step" id="s2"><div class="step-num">2</div><div class="step-label">Options</div></div>
+    <div class="step" id="s3"><div class="step-num">3</div><div class="step-label">Process</div></div>
+    <div class="step" id="s4"><div class="step-num">4</div><div class="step-label">Download</div></div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">Upload Audio File</div>
+    <div class="upload-zone" id="audioZone">
+      <input type="file" accept="audio/*" id="audioInput"/>
+      <span class="upload-icon">🎵</span>
+      <div class="upload-title">Drop your song here</div>
+      <div class="upload-sub">MP3 · WAV · FLAC · AAC · OGG</div>
+    </div>
+    <div class="upload-file-info" id="audioInfo"><span>🎵</span><span id="audioName">—</span><span style="margin-left:auto;opacity:.5" id="audioSize">—</span></div>
+    <div class="waveform" id="waveform" style="display:none"></div>
+  </div>
+
+  <!-- Options 6-up -->
+  <div class="card">
+    <div class="card-title">Select Conversion Type</div>
+    <div class="options-grid">
+      <div class="option-card opt-a" data-opt="a" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Audio</span>
+        <span class="option-icon">🎸</span>
+        <div class="option-label">Instrumental</div>
+        <div class="option-desc">Music only, vocals removed</div>
+      </div>
+      <div class="option-card opt-b" data-opt="b" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Audio</span>
+        <span class="option-icon">🎤</span>
+        <div class="option-label">Vocals Only</div>
+        <div class="option-desc">Isolated vocal track</div>
+      </div>
+      <div class="option-card opt-c" data-opt="c" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Text</span>
+        <span class="option-icon">📝</span>
+        <div class="option-label">Lyrics</div>
+        <div class="option-desc">Transcribe song to text</div>
+      </div>
+      <div class="option-card opt-d" data-opt="d" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Audio</span>
+        <span class="option-icon">🔊</span>
+        <div class="option-label">Voice Only</div>
+        <div class="option-desc">Raw voice, no effects</div>
+      </div>
+      <div class="option-card opt-e" data-opt="e" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Combo</span>
+        <div class="combo-badge">🎸 + 📝</div>
+        <div class="option-label">Instrumental + Lyrics</div>
+        <div class="option-desc">Music track & lyric file together</div>
+      </div>
+      <div class="option-card opt-f" data-opt="f" onclick="selectOption(this)">
+        <div class="option-check">✓</div>
+        <span class="option-tag">Combo</span>
+        <div class="combo-badge">🔊 + 🎸</div>
+        <div class="option-label">Voice + Instrumental</div>
+        <div class="option-desc">Both stems as separate files</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image -->
+  <div class="card">
+    <div class="card-title">Background Image <span class="optional-badge">Optional</span></div>
+    <div class="img-upload">
+      <img class="img-preview" id="imgPreview" src="#" alt="preview"/>
+      <div class="img-drop">
+        <input type="file" accept="image/*" id="imgInput"/>
+        <span style="font-size:1.3rem;display:block;margin-bottom:5px">🖼️</span>
+        Upload background image<br><span style="font-size:.6rem;opacity:.5">PNG · JPG · WEBP</span>
+      </div>
+    </div>
+    <p style="font-size:.65rem;color:var(--muted);margin-top:10px">Generates an MP4 video with your audio + image. Lyrics options add subtitles.</p>
+  </div>
+
+  <button class="process-btn" id="processBtn" disabled onclick="startProcessing()">
+    <span>⚡</span> PROCESS SONG
+  </button>
+
+  <div class="progress-area" id="progressArea">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label"><span class="progress-stage" id="progressStage">Initializing…</span><span id="progressPct">0%</span></div>
+  </div>
+
+  <div class="card output-card" id="outputCard">
+    <div class="card-title">Your Files Are Ready</div>
+    <div class="output-list" id="outputList"></div>
+    <div class="lyrics-box" id="lyricsBox"></div>
+    <button class="reset-btn" onclick="resetAll()">↺ Process Another Song</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+  let audioFile=null,imgFile=null,selectedOption=null;
+  const waveform=document.getElementById('waveform');
+  for(let i=0;i<28;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height=(Math.random()*22+6)+'px';b.style.animationDelay=(i*.06)+'s';waveform.appendChild(b);}
+  document.getElementById('audioInput').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    audioFile=f;
+    document.getElementById('audioName').textContent=f.name;
+    document.getElementById('audioSize').textContent=(f.size/1024/1024).toFixed(2)+' MB';
+    document.getElementById('audioInfo').classList.add('show');
+    document.getElementById('waveform').style.display='flex';
+    setStep(1);checkReady();showToast('🎵 Loaded: '+f.name);
+  });
+  const az=document.getElementById('audioZone');
+  az.addEventListener('dragover',e=>{e.preventDefault();az.classList.add('drag-over');});
+  az.addEventListener('dragleave',()=>az.classList.remove('drag-over'));
+  az.addEventListener('drop',e=>{e.preventDefault();az.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('audio/')){audioFile=f;document.getElementById('audioName').textContent=f.name;document.getElementById('audioSize').textContent=(f.size/1024/1024).toFixed(2)+' MB';document.getElementById('audioInfo').classList.add('show');document.getElementById('waveform').style.display='flex';checkReady();showToast('🎵 Audio loaded!');}});
+  document.getElementById('imgInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;imgFile=f;const r=new FileReader();r.onload=ev=>{const img=document.getElementById('imgPreview');img.src=ev.target.result;img.classList.add('show');};r.readAsDataURL(f);showToast('🖼️ Background set!');});
+  function selectOption(el){document.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');selectedOption=el.dataset.opt;setStep(2);checkReady();}
+  function checkReady(){document.getElementById('processBtn').disabled=!(audioFile&&selectedOption);}
+  function setStep(n){for(let i=1;i<=4;i++){const s=document.getElementById('s'+i);s.classList.remove('active','done');if(i<n+1)s.classList.add('done');if(i===n+1)s.classList.add('active');}}
+  const stagesMap={
+    a:[['Analyzing audio…',8],['Detecting vocal frequencies…',24],['Isolating music stems…',50],['Removing vocal layers…',74],['Exporting instrumental…',92],['Done!',100]],
+    b:[['Analyzing audio…',8],['Running stem separation…',25],['Extracting vocal frequencies…',52],['Enhancing voice clarity…',76],['Exporting vocals…',92],['Done!',100]],
+    c:[['Analyzing audio…',8],['Isolating voice track…',20],['Running speech recognition…',44],['Syncing timestamps…',66],['Generating lyrics file…',88],['Done!',100]],
+    d:[['Analyzing audio…',8],['Running stem separation…',26],['Removing reverb & effects…',52],['Cleaning voice signal…',76],['Exporting raw voice…',92],['Done!',100]],
+    e:[['Analyzing audio…',8],['Separating stems…',22],['Removing vocals from music…',40],['Running transcription…',60],['Syncing lyrics timestamps…',80],['Packaging outputs…',94],['Done!',100]],
+    f:[['Analyzing audio…',8],['Running full stem separation…',24],['Extracting raw voice track…',46],['Processing instrumental track…',68],['Cleaning both stems…',86],['Packaging outputs…',96],['Done!',100]],
+  };
+  const metaMap={
+    a:{label:'Instrumental',icon:'🎸',fmt:'MP3',size:'4.2 MB'},
+    b:{label:'Vocals Only',icon:'🎤',fmt:'MP3',size:'3.1 MB'},
+    c:{label:'Lyrics Transcript',icon:'📝',fmt:'TXT',size:'18 KB'},
+    d:{label:'Raw Voice',icon:'🔊',fmt:'WAV',size:'7.8 MB'},
+    e:{label:'Instrumental',icon:'🎸',fmt:'MP3',size:'4.2 MB',extra:{label:'Lyrics Transcript',icon:'📝',fmt:'TXT',size:'18 KB'}},
+    f:{label:'Raw Voice',icon:'🔊',fmt:'WAV',size:'7.8 MB',extra:{label:'Instrumental',icon:'🎸',fmt:'MP3',size:'4.2 MB'}},
+  };
+  const sampleLyrics=["I used to dream of something more","Now all I see are open doors","The city sleeps but I'm awake","For every choice that I must make","We rise and fall like tides in rain","And find ourselves again, again","Oh, take me where the lights burn low","To a place that only we could know"];
+  function startProcessing(){
+    if(!audioFile||!selectedOption)return;
+    document.getElementById('processBtn').disabled=true;
+    document.getElementById('progressArea').classList.add('show');
+    setStep(3);
+    const stgs=stagesMap[selectedOption];let idx=0;
+    function next(){if(idx>=stgs.length){showOutput();return;}const[label,pct]=stgs[idx++];document.getElementById('progressStage').textContent=label;document.getElementById('progressFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';setTimeout(next,idx===stgs.length?400:650+Math.random()*350);}
+    next();
+  }
+  function showOutput(){
+    setStep(4);
+    document.getElementById('outputCard').classList.add('show');
+    document.getElementById('progressArea').style.display='none';
+    const meta=metaMap[selectedOption];
+    const base=audioFile.name.replace(/\.[^.]+$/,'');
+    const list=document.getElementById('outputList');list.innerHTML='';
+    function makeItem(m,accentColor){
+      const div=document.createElement('div');div.className='output-item';
+      div.innerHTML=`<div class="output-item-icon" style="background:${accentColor}18">${m.icon}</div><div class="output-item-info"><div class="output-item-name">${base}_${m.label.replace(/ /g,'_')}.${m.fmt.toLowerCase()}</div><div class="output-item-meta">${m.fmt} · ${m.size} · Ready</div></div><a class="dl-btn" href="#" onclick="fakeDownload(event,'${m.label}')">⬇ Download</a>`;
+      return div;
+    }
+    list.appendChild(makeItem(meta,'#c8ff57'));
+    if(meta.extra) list.appendChild(makeItem(meta.extra,'#57c8ff'));
+    if(imgFile){
+      const vitem=document.createElement('div');vitem.className='output-item';
+      const hasSubs=['c','e'].includes(selectedOption);
+      vitem.innerHTML=`<div class="output-item-icon" style="background:rgba(87,200,255,.1)">🎬</div><div class="output-item-info"><div class="output-item-name">${base}_video.mp4</div><div class="output-item-meta">MP4 · Background image${hasSubs?' · Subtitles':''}</div></div><a class="dl-btn" href="#" onclick="fakeDownload(event,'Video')">⬇ Download</a>`;
+      list.appendChild(vitem);
+    }
+    if(['c','e'].includes(selectedOption)){
+      const lb=document.getElementById('lyricsBox');lb.classList.add('show');lb.innerHTML='';
+      sampleLyrics.forEach((line,i)=>{const d=document.createElement('div');d.className='lyrics-line';d.style.animationDelay=(i*.12)+'s';d.textContent=line;lb.appendChild(d);});
+    }
+    showToast('✅ Files ready for download!');
+  }
+  function fakeDownload(e,label){e.preventDefault();showToast('⬇ Downloading '+label+'…');}
+  function resetAll(){
+    audioFile=null;imgFile=null;selectedOption=null;
+    document.getElementById('audioInfo').classList.remove('show');
+    document.getElementById('waveform').style.display='none';
+    document.getElementById('audioInput').value='';
+    document.getElementById('imgInput').value='';
+    document.getElementById('imgPreview').classList.remove('show');
+    document.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('progressArea').classList.remove('show');
+    document.getElementById('progressFill').style.width='0%';
+    document.getElementById('outputCard').classList.remove('show');
+    document.getElementById('lyricsBox').classList.remove('show');
+    document.getElementById('processBtn').disabled=true;
+    document.getElementById('progressArea').style.display='';
+    for(let i=1;i<=4;i++){const s=document.getElementById('s'+i);s.classList.remove('active','done');if(i===1)s.classList.add('active');}
+    showToast('↺ Ready for a new song!');
+  }
+  function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+</script>
+</body>
+</html>
